@@ -8,10 +8,6 @@ a LangGraph workflow, a CLI run, a Flask dashboard, and finally using the app (u
 captured frame-by-frame with a headless browser. **Everything on screen is real**: the code being typed is the code in
 `money-agent/`, and every terminal line, server log line and dashboard number comes from actually running it (`video/scripts/capture.py`).
 
-![Preview](docs/demo.gif)
-
-▶ Full video: [`docs/demo-1080p.mp4`](docs/demo-1080p.mp4)
-
 | A real error, fixed properly | The LangGraph workflow | The working dashboard | You stay in control |
 |---|---|---|---|
 | ![](docs/screenshots/02-real-error.jpg) | ![](docs/screenshots/06-langgraph-agent.jpg) | ![](docs/screenshots/09-dashboard.jpg) | ![](docs/screenshots/10-correct-category.jpg) |
