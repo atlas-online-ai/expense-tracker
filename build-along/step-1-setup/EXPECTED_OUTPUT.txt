@@ -1,0 +1,8 @@
+# Expected output of step 1 (step-1-setup)
+# command: pip install -r requirements.txt
+# Times and file paths will be different on your computer; everything else should match.
+
+$ python -c "import pandas, langgraph, flask; print('ready')"
+ready
+
+tested with: pandas==3.0.6, langgraph==1.2.16, flask==3.1.3

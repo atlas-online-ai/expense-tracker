@@ -1,0 +1,20 @@
+# Expected output of step 4 (step-4-categorise)
+# command: python tools.py data/transactions.csv
+# Times and file paths will be different on your computer; everything else should match.
+
+load: {'rows_read': 133, 'rows_dropped': 3, 'dropped_ids': ['T018', 'T041', 'T067'], 'rows_clean': 130}
+        date                  description   amount    type
+0 2026-09-01   UPI/CR/FROM PARENT/MONTHLY  15000.0  credit
+1 2026-09-01             UPI/OLACABS/3987     97.0   debit
+2 2026-09-01      UPI/UBERINDIA/7864/RIDE    157.0   debit
+3 2026-09-02  NEFT/HOSTEL FEES/SUNRISE PG   9500.0   debit
+4 2026-09-02           UPI/BLINKIT/325127    266.0   debit
+          date            merchant  amount       category    source
+122 2026-10-26             Dominos   296.0           food      rule
+123 2026-10-26         Steam Games   899.0  entertainment      rule
+124 2026-10-28  Raju General Store   230.0          other  fallback
+125 2026-10-29              Zomato   466.0           food      rule
+126 2026-10-30              Swiggy   279.0           food      rule
+127 2026-10-30             Dominos   554.0           food      rule
+128 2026-10-30             Dominos   501.0           food      rule
+129 2026-10-30           Uberindia    73.0      transport      rule

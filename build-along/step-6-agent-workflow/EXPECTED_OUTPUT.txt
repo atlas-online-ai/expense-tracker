@@ -1,0 +1,5 @@
+# Expected output of step 6 (step-6-agent-workflow)
+# command: python -c "from agent import build_graph; print(' -> '.join(build_graph().get_graph().nodes))"
+# Times and file paths will be different on your computer; everything else should match.
+
+__start__ -> load_transactions -> categorise_expenses -> analyse_spending -> detect_anomalies -> generate_insights -> prepare_report -> __end__

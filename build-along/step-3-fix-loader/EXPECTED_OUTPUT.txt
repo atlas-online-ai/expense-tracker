@@ -1,0 +1,11 @@
+# Expected output of step 3 (step-3-fix-loader)
+# command: python tools.py data/transactions.csv
+# Times and file paths will be different on your computer; everything else should match.
+
+load: {'rows_read': 133, 'rows_dropped': 3, 'dropped_ids': ['T018', 'T041', 'T067'], 'rows_clean': 130}
+        date                  description   amount    type
+0 2026-09-01   UPI/CR/FROM PARENT/MONTHLY  15000.0  credit
+1 2026-09-01             UPI/OLACABS/3987     97.0   debit
+2 2026-09-01      UPI/UBERINDIA/7864/RIDE    157.0   debit
+3 2026-09-02  NEFT/HOSTEL FEES/SUNRISE PG   9500.0   debit
+4 2026-09-02           UPI/BLINKIT/325127    266.0   debit

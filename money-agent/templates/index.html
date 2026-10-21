@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Where Did My Money Go?</title>
+<style>
+  :root { --bg: #F5F6F8; --card: #fff; --ink: #151922; --muted: #6B7280; --line: #E5E7EB;
+          --accent: #0E9F6E; --warn: #D97706; --bad: #DC2626; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font: 15px Inter, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  header { display: flex; align-items: center; gap: 14px; padding: 14px 28px;
+           background: #fff; border-bottom: 1px solid var(--line); }
+  .logo { width: 36px; height: 36px; border-radius: 10px; background: var(--accent);
+          color: #fff; display: grid; place-items: center; font-weight: 800; }
+  h1 { font-size: 20px; } .sub { color: var(--muted); font-size: 13px; }
+  .grow { flex: 1; }
+  .pill { font-size: 12px; padding: 6px 12px; border-radius: 99px; background: #ECFDF5; color: #047857; }
+  select, button, .file { font: inherit; padding: 8px 14px; border-radius: 9px;
+          border: 1px solid var(--line); background: #fff; cursor: pointer; }
+  button.primary { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 600; }
+  .file input { display: none; }
+  main { padding: 18px 28px; display: grid; gap: 16px; height: calc(100vh - 69px);
+         grid-template-rows: auto 1fr; }
+  #content { display: grid; gap: 16px; grid-template-rows: auto 1fr 1fr; }
+  .status { color: var(--muted); font-size: 13px; min-height: 18px; }
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .kpi .label { color: var(--muted); font-size: 13px; }
+  .kpi .value { font-size: 30px; font-weight: 800; margin-top: 4px; letter-spacing: -.02em; }
+  .kpi .note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .row { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 16px; }
+  h2 { font-size: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+  h2 small { color: var(--muted); font-weight: 400; }
+  .split { display: flex; gap: 18px; align-items: center; }
+  .legend { flex: 1; display: grid; gap: 7px; }
+  .legend div { display: grid; grid-template-columns: 12px 1fr auto 42px; gap: 8px; align-items: center; font-size: 14px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); }
+  ul.insights { padding-left: 18px; display: grid; gap: 10px; line-height: 1.45; }
+  .flag { border: 1px solid #FDE68A; background: #FFFBEB; border-radius: 10px; padding: 10px 12px;
+          display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin-bottom: 8px; }
+  .flag .why { font-size: 13px; color: #92400E; grid-column: 1; }
+  .flag button { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 7px 4px; border-bottom: 1px solid var(--line); }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #F3F4F6; color: var(--muted); }
+  .tag.you { background: #ECFDF5; color: #047857; }
+  .empty { padding: 120px; text-align: center; color: var(--muted); font-size: 18px; }
+  #toast { position: fixed; right: 28px; bottom: 24px; background: var(--ink); color: #fff;
+           padding: 12px 18px; border-radius: 10px; opacity: 0; transition: opacity .3s; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">₹</div>
+  <div><h1>Where Did My Money Go?</h1><div class="sub">Personal spending agent</div></div>
+  <div class="grow"></div>
+  <span class="pill">Read-only · never moves money</span>
+  <select id="month" title="Period"></select>
+  <label class="file"><input id="file" type="file" accept=".csv"><span id="fname">Choose CSV…</span></label>
+  <button class="primary" id="run">Run analysis</button>
+</header>
+<main id="main">
+  <div class="status" id="status"></div>
+  <div id="content"><div class="card empty">Upload a transactions CSV to see where your money went.</div></div>
+</main>
+<div id="toast"></div>
+
+<script>
+const COLORS = { food: "#F97316", rent: "#6366F1", shopping: "#EAB308", transport: "#0EA5E9",
+  bills: "#8B5CF6", subscriptions: "#EC4899", education: "#10B981", entertainment: "#F43F5E", other: "#9CA3AF" };
+const rs = n => "₹" + Math.round(n).toLocaleString("en-IN");
+const label = m => new Date(m + "-01").toLocaleString("en-US", { month: "short", year: "numeric" });
+let report = null;
+
+document.getElementById("file").onchange = e => {
+  document.getElementById("fname").textContent = e.target.files[0]?.name || "Choose CSV…";
+};
+document.getElementById("run").onclick = async () => {
+  const file = document.getElementById("file").files[0];
+  if (!file) return setStatus("Choose a CSV first.");
+  const body = new FormData();
+  body.append("file", file);
+  setStatus("Agent running: load → categorise → analyse → detect anomalies → insights → report …");
+  show(await post("/api/analyse", body), null);
+};
+document.getElementById("month").onchange = () => render();
+
+async function post(url, body) {
+  const opts = body instanceof FormData ? { method: "POST", body }
+    : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+  const res = await fetch(url, opts);
+  return res.json();
+}
+function setStatus(text) { document.getElementById("status").textContent = text; }
+function toast(text) {
+  const t = document.getElementById("toast");
+  t.textContent = text; t.style.opacity = 1;
+  setTimeout(() => (t.style.opacity = 0), 3200);
+}
+
+function show(next, message) {
+  const before = report;
+  report = next;
+  const l = report.load;
+  setStatus(`Loaded ${l.rows_clean} transactions · ${l.rows_dropped} rows skipped (invalid amount or date: ${l.dropped_ids.join(", ")})`);
+  const sel = document.getElementById("month");
+  const keep = sel.value;
+  sel.innerHTML = report.analysis.months.map(m => `<option value="${m}">${label(m)}</option>`).join("");
+  sel.value = keep && report.analysis.months.includes(keep) ? keep : report.analysis.month;
+  render();
+  if (message) toast(message(before, report));
+}
+
+function render() {
+  const a = report.analysis, m = document.getElementById("month").value;
+  const i = a.months.indexOf(m), prev = a.months[i - 1];
+  const cats = Object.entries(a.by_month[m]).sort((x, y) => y[1] - x[1]);
+  const total = a.totals[m];
+  const change = prev ? ((total - a.totals[prev]) / a.totals[prev] * 100) : null;
+  const recurring = a.recurring.reduce((s, r) => s + r.amount, 0);
+  const needsCheck = report.transactions.filter(t => ["fallback", "llm", "you"].includes(t.source));
+
+  document.getElementById("content").innerHTML = `
+  <div class="kpis">
+    ${kpi("Total spent", rs(total), label(m))}
+    ${kpi(prev ? "vs " + label(prev) : "vs last month", change === null ? "—" : (change > 0 ? "+" : "") + change.toFixed(1) + "%",
+          prev ? rs(a.totals[prev]) + " last month" : "")}
+    ${kpi("Transactions", a.count_by_month[m], "debits this period")}
+    ${kpi("Recurring / month", rs(recurring), a.recurring.length + " payments")}
+    ${kpi("Flagged for review", report.flags.length, "unusual ≠ fraud")}
+  </div>
+  <div class="row">
+    <div class="card"><h2>Spending by category <small>largest first</small></h2>
+      <div class="split">${donut(cats, total)}<div class="legend">
+        ${cats.map(([c, v]) => `<div><span class="dot" style="background:${COLORS[c]}"></span>
+          <span>${c}</span><span class="num">${rs(v)}</span><span class="num muted">${Math.round(v / total * 100)}%</span></div>`).join("")}
+      </div></div></div>
+    <div class="card"><h2>Month over month <small>${a.months.map(label).join(" vs ")}</small></h2>${mom(a)}</div>
+    <div class="card"><h2>Insights <small>from your data</small></h2>
+      <ul class="insights">${report.insights.map(s => `<li>${s}</li>`).join("")}</ul></div>
+  </div>
+  <div class="row">
+    <div class="card"><h2>Flagged for review <small>nothing is blocked — you decide</small></h2>
+      ${report.flags.length ? report.flags.map(f => `<div class="flag">
+        <div><b>${f.merchant}</b> · ${rs(f.amount)} <span class="muted">· ${f.date} · ${f.txn_id}</span></div>
+        <div class="why">${f.reasons.join(" · ")}</div>
+        <button onclick="dismiss('${f.txn_id}')">Dismiss</button></div>`).join("")
+        : `<p class="muted">Nothing unusual right now.</p>`}</div>
+    <div class="card"><h2>Recurring payments <small>${rs(recurring)} / month</small></h2>
+      <table>${a.recurring.map(r => `<tr><td>${r.merchant}</td><td class="muted">${r.category}</td>
+        <td class="num">${rs(r.amount)}</td></tr>`).join("")}</table></div>
+    <div class="card"><h2>Check these categories <small>rules weren't sure</small></h2>
+      <table>${needsCheck.map(t => `<tr><td>${t.merchant}<div class="muted" style="font-size:12px">${t.date} · ${rs(t.amount)}</div></td>
+        <td><span class="tag ${t.source}">${t.source === "you" ? "set by you" : t.source}</span></td>
+        <td class="num"><select onchange="correct('${t.txn_id}', this.value)">
+          ${report.categories.map(c => `<option ${c === t.category ? "selected" : ""}>${c}</option>`).join("")}
+        </select></td></tr>`).join("")}</table></div>
+  </div>`;
+}
+
+function kpi(labelText, value, note) {
+  return `<div class="card kpi"><div class="label">${labelText}</div><div class="value">${value}</div><div class="note">${note}</div></div>`;
+}
+
+function donut(cats, total) {
+  const r = 70, c = 2 * Math.PI * r;
+  let offset = 0;
+  const arcs = cats.map(([cat, v]) => {
+    const len = v / total * c;
+    const arc = `<circle r="${r}" cx="90" cy="90" fill="none" stroke="${COLORS[cat]}" stroke-width="26"
+      stroke-dasharray="${len} ${c - len}" stroke-dashoffset="${-offset}" transform="rotate(-90 90 90)"/>`;
+    offset += len;
+    return arc;
+  }).join("");
+  return `<svg width="180" height="180">${arcs}
+    <text x="90" y="86" text-anchor="middle" font-size="20" font-weight="800">${rs(total)}</text>
+    <text x="90" y="106" text-anchor="middle" font-size="12" fill="#6B7280">spent</text></svg>`;
+}
+
+function mom(a) {
+  const [p, m] = a.months.slice(-2);
+  const cats = Object.keys(a.by_month[m]).sort((x, y) => a.by_month[m][y] - a.by_month[m][x]).slice(0, 6);
+  const max = Math.max(...cats.flatMap(c => [a.by_month[m][c] || 0, a.by_month[p]?.[c] || 0]));
+  const W = 520, H = 210, bw = 26, gap = W / cats.length;
+  const bars = cats.map((c, i) => {
+    const x = i * gap + gap / 2, hp = (a.by_month[p]?.[c] || 0) / max * 160, hm = (a.by_month[m][c] || 0) / max * 160;
+    return `<rect x="${x - bw - 2}" y="${180 - hp}" width="${bw}" height="${hp}" rx="4" fill="#CBD5E1"/>
+      <rect x="${x + 2}" y="${180 - hm}" width="${bw}" height="${hm}" rx="4" fill="${COLORS[c]}"/>
+      <text x="${x}" y="200" text-anchor="middle" font-size="12" fill="#6B7280">${c}</text>`;
+  }).join("");
+  return `<svg width="100%" viewBox="0 0 ${W} ${H}">${bars}<line x1="0" x2="${W}" y1="180" y2="180" stroke="#E5E7EB"/></svg>
+    <div class="muted" style="font-size:12px">grey: ${label(p)} · colour: ${label(m)}</div>`;
+}
+
+async function correct(txn_id, category) {
+  const old = report.transactions.find(t => t.txn_id === txn_id).category;
+  show(await post("/api/correct", { txn_id, category }), (b, n) => {
+    const m = n.analysis.month;
+    return `Recalculated · ${category}: ${rs(b.analysis.by_month[m][category] || 0)} → ${rs(n.analysis.by_month[m][category] || 0)}` +
+      ` · ${old}: ${rs(b.analysis.by_month[m][old] || 0)} → ${rs(n.analysis.by_month[m][old] || 0)}`;
+  });
+}
+async function dismiss(txn_id) {
+  show(await post("/api/dismiss", { txn_id }), (b, n) => `Alert ${txn_id} dismissed · ${n.flags.length} left to review`);
+}
+</script>
+</body>
+</html>

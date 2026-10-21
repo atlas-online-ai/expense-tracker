@@ -1,0 +1,36 @@
+# Expected output of step 7 (step-7-run-cli)
+# command: python main.py data/transactions.csv
+# Times and file paths will be different on your computer; everything else should match.
+
+money-agent | read-only: never moves money or contacts your bank
+
+12:54:44 | load_transactions  | 133 rows read, 3 dropped ['T018', 'T041', 'T067'], 130 clean
+12:54:44 | categorise         | sources {'rule': 122, 'type': 4, 'fallback': 4}
+12:54:44 | analyse_spending   | 2026-10: Rs 39,739 over 68 debits (+71.4% vs 2026-09), 5 recurring
+12:54:44 | detect_anomalies   | 3 flagged for review ['T074', 'T116', 'T120']
+12:54:44 | generate_insights  | 4 insights
+12:54:44 | prepare_report     | saved output/report.json
+
+Spent in 2026-10: Rs 39,739  (+71.4% vs 2026-09)
+  food           Rs  11,930
+  rent           Rs   9,500
+  other          Rs   7,139
+  shopping       Rs   4,447
+  transport      Rs   2,489
+  entertainment  Rs   2,299
+  education      Rs   1,079
+  subscriptions  Rs     557
+  bills          Rs     299
+
+Flagged for review (unusual is not fraud - you decide):
+  T074  04 Oct  Amazon Seller Svcs       Rs  1,299  same merchant and amount within 2 days - possible duplicate
+  T116  20 Oct  Zomato                   Rs  2,450  8.8x your usual food spend
+  T120  23 Oct  Gadgetworld Electronics  Rs  6,499  17.3x your usual other spend
+
+Insights:
+  - Food is your biggest everyday expense: ₹11,930 (30% of Oct 2026 spending).
+  - Food rose ₹4,732 vs Sep 2026 (₹7,198 -> ₹11,930).
+  - 5 recurring payments cost ₹10,356 every month.
+  - 3 payment(s) look unusual. Unusual is not fraud - check them against your own records.
+
+analysis complete

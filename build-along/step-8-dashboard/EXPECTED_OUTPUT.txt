@@ -1,0 +1,40 @@
+# Expected output of step 8 (step-8-dashboard)
+# command: python app.py
+# Times and file paths will be different on your computer; everything else should match.
+
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+127.0.0.1 - - [21/Oct/2026 12:54:46] "GET / HTTP/1.1" 200 -
+12:54:46 | load_transactions  | 133 rows read, 3 dropped ['T018', 'T041', 'T067'], 130 clean
+12:54:46 | categorise         | sources {'rule': 122, 'type': 4, 'fallback': 4}
+12:54:46 | analyse_spending   | 2026-10: Rs 39,739 over 68 debits (+71.4% vs 2026-09), 5 recurring
+12:54:46 | detect_anomalies   | 3 flagged for review ['T074', 'T116', 'T120']
+12:54:46 | generate_insights  | 4 insights
+12:54:46 | prepare_report     | saved output/report.json
+analysis complete: 130 transactions, Rs 39,739 spent in 2026-10, 3 flagged
+127.0.0.1 - - [21/Oct/2026 12:54:46] "POST /api/analyse HTTP/1.1" 200 -
+12:54:46 | load_transactions  | 133 rows read, 3 dropped ['T018', 'T041', 'T067'], 130 clean
+12:54:46 | categorise         | sources {'rule': 122, 'type': 4, 'fallback': 3, 'you': 1}
+12:54:46 | analyse_spending   | 2026-10: Rs 39,739 over 68 debits (+71.4% vs 2026-09), 5 recurring
+12:54:46 | detect_anomalies   | 3 flagged for review ['T074', 'T116', 'T120']
+12:54:46 | generate_insights  | 4 insights
+12:54:46 | prepare_report     | saved output/report.json
+analysis complete: 130 transactions, Rs 39,739 spent in 2026-10, 3 flagged
+127.0.0.1 - - [21/Oct/2026 12:54:46] "POST /api/correct HTTP/1.1" 200 -
+12:54:46 | load_transactions  | 133 rows read, 3 dropped ['T018', 'T041', 'T067'], 130 clean
+12:54:46 | categorise         | sources {'rule': 122, 'type': 4, 'fallback': 3, 'you': 1}
+12:54:46 | analyse_spending   | 2026-10: Rs 39,739 over 68 debits (+71.4% vs 2026-09), 5 recurring
+12:54:46 | detect_anomalies   | 2 flagged for review ['T116', 'T120']
+12:54:46 | generate_insights  | 4 insights
+12:54:46 | prepare_report     | saved output/report.json
+analysis complete: 130 transactions, Rs 39,739 spent in 2026-10, 2 flagged
+127.0.0.1 - - [21/Oct/2026 12:54:46] "POST /api/dismiss HTTP/1.1" 200 -
+
+What the dashboard shows (same as the video)
+  after Run analysis    : ₹39,739 spent in 2026-10, 3 flagged ['T074', 'T116', 'T120']
+  after correcting T113 (Sri Sai Enterprises) -> education:
+      education ₹1,079 -> ₹1,489 · other ₹7,139 -> ₹6,729
+  after dismissing T074   : 2 left to review

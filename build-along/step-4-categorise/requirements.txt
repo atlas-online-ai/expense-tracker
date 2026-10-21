@@ -1,0 +1,4 @@
+pandas
+langgraph
+flask
+# optional: anthropic  (LLM fallback for ambiguous descriptions)
